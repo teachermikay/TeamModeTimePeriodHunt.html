@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Team Battle: Integrated Controls</title>
+    <title>Team Battle: Advanced Logic Edition</title>
     <style>
         :root {
             --bg-pastel: #fdfcf0;
@@ -13,6 +13,7 @@
             --accent-mint: #baffc9;
             --accent-peach: #ffdfba;
             --text-dark: #444;
+            --btn-gray: #bdc3c7;
         }
 
         * { box-sizing: border-box; }
@@ -90,22 +91,33 @@
             background: white; z-index: 5; transform: translateX(-50%);
         }
 
-        /* NEW POSITIONING FOR CHECK BUTTON - CENTERED UNDER LOCKS */
+        /* UPDATED CENTRAL CHECK BUTTON STYLING */
         #central-check {
             position: absolute; 
             left: 50%; 
-            top: 260px; /* Adjusted to be clearly below the lock buttons */
+            top: 260px; 
             transform: translateX(-50%);
             z-index: 40; 
-            background: var(--accent-mint); 
+            background: var(--btn-gray); /* Default Gray */
+            color: #7f8c8d;
             border: 4px solid #fff;
             padding: 10px 20px; 
             font-size: 1.1rem; 
             border-radius: 50px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2); 
-            cursor: pointer; 
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
+            cursor: default; 
             font-weight: bold;
             white-space: nowrap;
+            transition: all 0.3s ease;
+            pointer-events: none; /* Disabled until both lock */
+        }
+
+        #central-check.active {
+            background: var(--accent-mint);
+            color: var(--text-dark);
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            pointer-events: auto;
         }
 
         .team-side { 
@@ -159,7 +171,7 @@
             min-height: 45px; 
             z-index: 10;
         }
-        .btn-lock.locked { background: #bdc3c7 !important; color: #7f8c8d; cursor: default; }
+        .btn-lock.locked { background: var(--btn-gray) !important; color: #7f8c8d; cursor: default; }
 
         .symbol { position: absolute; font-size: 60px; font-weight: bold; text-shadow: 2px 2px 10px rgba(0,0,0,0.1); animation: floatUp 2s ease-out forwards; pointer-events: none; z-index: 100; }
         
@@ -286,6 +298,11 @@
         isLockedA = false; isLockedB = false; speedWinner = null;
         document.getElementById('lock-btn-a').classList.remove('locked');
         document.getElementById('lock-btn-b').classList.remove('locked');
+        
+        // Reset Check Button to Gray
+        const checkBtn = document.getElementById('central-check');
+        checkBtn.classList.remove('active');
+
         const item = questions[currentQ];
         document.getElementById('q-prompt').innerText = item.q;
         document.getElementById('q-target').innerText = "...is " + item.t;
@@ -316,6 +333,15 @@
         beep(440, 'sine', 0.2);
     }
 
+    function updateCheckButtonState() {
+        const checkBtn = document.getElementById('central-check');
+        if (isLockedA && isLockedB) {
+            checkBtn.classList.add('active');
+        } else {
+            checkBtn.classList.remove('active');
+        }
+    }
+
     function lockTeam(team) {
         if (team === 'a' && !isLockedA) {
             isLockedA = true; document.getElementById('lock-btn-a').classList.add('locked');
@@ -326,11 +352,19 @@
             document.querySelectorAll('#side-b .tile').forEach(t => t.classList.add('locked'));
             if (!speedWinner) speedWinner = 'b'; beep(300, 'square', 0.1);
         }
+        updateCheckButtonState();
     }
 
     function checkBothTeams() {
-        if (!isLockedA && !isLockedB) return;
+        if (!isLockedA || !isLockedB) return;
+        
+        // Immediately turn gray again
+        const checkBtn = document.getElementById('central-check');
+        checkBtn.classList.remove('active');
+
         const ans = questions[currentQ].ans;
+        let anyCorrect = false;
+
         const process = (team, locked, zoneId) => {
             if (!locked) return;
             const user = Array.from(document.getElementById(zoneId).children).map(t => t.innerText).join('');
@@ -338,19 +372,34 @@
                 let pts = 2; if (speedWinner === team) pts += 1;
                 if (team === 'a') scoreA += pts; else scoreB += pts;
                 spawnSymbol(team, `⭐ +${pts}`);
+                anyCorrect = true;
             } else {
                 spawnSymbol(team, '☹️');
                 if (speedWinner === team) speedWinner = null;
                 unlockTeam(team);
             }
         };
-        process('a', isLockedA, 'zone-a'); process('b', isLockedB, 'zone-b');
-        updateScores(); beep(500, 'sine', 0.3);
+
+        process('a', isLockedA, 'zone-a'); 
+        process('b', isLockedB, 'zone-b');
+        
+        updateScores(); 
+        beep(500, 'sine', 0.3);
+
+        if (anyCorrect && timerInt) {
+            setTimeout(() => {
+                nextRound();
+            }, 1000);
+        } else if (!anyCorrect) {
+            // Re-evaluate if it should be active (in case one team was unlocked)
+            updateCheckButtonState();
+        }
     }
 
     function unlockTeam(team) {
         if (team === 'a') { isLockedA = false; document.getElementById('lock-btn-a').classList.remove('locked'); document.querySelectorAll('#side-a .tile').forEach(t => t.classList.remove('locked')); }
         else { isLockedB = false; document.getElementById('lock-btn-b').classList.remove('locked'); document.querySelectorAll('#side-b .tile').forEach(t => t.classList.remove('locked')); }
+        updateCheckButtonState();
     }
 
     function spawnSymbol(team, txt) {
@@ -388,7 +437,10 @@
         beep(523, 'sine', 0.2); setTimeout(() => beep(659, 'sine', 0.2), 150); setTimeout(() => beep(783, 'sine', 0.4), 300);
     }
 
-    function nextRound() { currentQ = (currentQ + 1) % questions.length; initRound(); }
+    function nextRound() { 
+        currentQ = Math.floor(Math.random() * questions.length);
+        initRound(); 
+    }
     initRound();
 </script>
 </body>

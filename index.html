@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Team Battle: Advanced Logic Edition</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Past Time Period: Hunt the Words</title>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Jua&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-pastel: #fdfcf0;
@@ -16,11 +17,11 @@
             --btn-gray: #bdc3c7;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             margin: 0;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Jua', sans-serif;
             background-color: var(--bg-pastel);
             color: var(--text-dark);
             height: 100dvh;
@@ -30,164 +31,128 @@
             touch-action: manipulation;
         }
 
+        #main-menu, #game-over {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-pastel);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            text-align: center;
+        }
+
+        #game-over { display: none; background: rgba(253, 252, 240, 0.98); }
+
+        .menu-title {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: clamp(2.2rem, 7vw, 4rem);
+            color: #ff6b6b;
+            margin-bottom: 40px;
+            text-shadow: 4px 4px 0px #fff, 7px 7px 0px rgba(0,0,0,0.1);
+            line-height: 1.1;
+        }
+
+        .menu-btn {
+            font-family: 'Jua', sans-serif;
+            width: clamp(200px, 50vw, 350px);
+            padding: 18px;
+            font-size: 1.8rem;
+            border: 4px solid #fff;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #ddd;
+            margin-bottom: 20px;
+            transition: transform 0.1s;
+        }
+        .menu-btn:active { transform: translateY(4px); box-shadow: 0 4px 0 #ddd; }
+
         header {
             flex-shrink: 0;
-            min-height: 100px;
+            min-height: 12vh;
             background: var(--header-pastel);
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 5px 10px;
+            padding: 5px 15px;
             border-bottom: 5px solid #fff;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.05);
             z-index: 30;
         }
 
-        .score-box {
-            padding: 5px 10px;
-            border-radius: 12px;
-            text-align: center;
-            font-weight: bold;
-            flex: 0 1 80px;
-            border: 3px solid #fff;
-            font-size: 0.8rem;
-        }
+        .score-box { padding: 8px; border-radius: 15px; text-align: center; flex: 0 1 100px; border: 3px solid #fff; }
         .score-a { background: var(--team-a-color); }
         .score-b { background: var(--team-b-color); }
-        .score-val { font-size: 1.5rem; display: block; }
+        .score-val { font-size: 1.8rem; display: block; }
 
-        .control-hub {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            flex: 1;
+        .control-hub { display: flex; flex-direction: column; align-items: center; gap: 5px; flex: 1; }
+        .timer-row { display: flex; align-items: center; gap: 8px; }
+        .timer-display { font-size: 1.6rem; background: #fff; padding: 2px 12px; border-radius: 12px; border: 2px solid #ddd; }
+        .adj-btn { cursor: pointer; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 1px 8px; }
+        .nav-btn { font-family: 'Jua', sans-serif; background: #fff; border: 2px solid #ddd; padding: 6px 10px; border-radius: 10px; cursor: pointer; font-size: 0.8rem; }
+
+        #arena { flex-grow: 1; display: flex; position: relative; width: 100%; overflow: hidden; }
+        .divider { position: absolute; left: 50%; top: 0; bottom: 0; width: 4px; background: white; z-index: 5; transform: translateX(-50%); }
+
+        .team-side { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 10px; height: 100%; position: relative; }
+
+        .local-q-box {
+            width: 95%; background: #fff; padding: 10px; border-radius: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); text-align: center;
+            border: 3px solid var(--accent-mint); margin-bottom: 10px; flex-shrink: 0;
         }
-
-        .timer-row { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; justify-content: center; }
-        .timer-display { font-size: 1.5rem; font-family: monospace; background: #fff; padding: 2px 8px; border-radius: 10px; border: 2px solid #ddd; }
-        
-        .adj-btns { display: flex; flex-direction: column; gap: 2px; }
-        .adj-btn { cursor: pointer; background: #fff; border: 1px solid #ccc; border-radius: 4px; padding: 2px 6px; font-size: 12px; }
-
-        .button-row { display: flex; gap: 4px; flex-wrap: wrap; justify-content: center; }
-
-        .nav-btn {
-            background: #fff; border: 2px solid #ddd; padding: 5px 8px;
-            border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 11px;
-            transition: transform 0.1s;
-        }
-
-        #arena {
-            flex-grow: 1;
-            display: flex;
-            position: relative;
-            width: 100%;
-            overflow: hidden;
-        }
-
-        .divider {
-            position: absolute; left: 50%; top: 0; bottom: 0; width: 4px;
-            background: white; z-index: 5; transform: translateX(-50%);
-        }
-
-        /* UPDATED CENTRAL CHECK BUTTON STYLING */
-        #central-check {
-            position: absolute; 
-            left: 50%; 
-            top: 260px; 
-            transform: translateX(-50%);
-            z-index: 40; 
-            background: var(--btn-gray); /* Default Gray */
-            color: #7f8c8d;
-            border: 4px solid #fff;
-            padding: 10px 20px; 
-            font-size: 1.1rem; 
-            border-radius: 50px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); 
-            cursor: default; 
-            font-weight: bold;
-            white-space: nowrap;
-            transition: all 0.3s ease;
-            pointer-events: none; /* Disabled until both lock */
-        }
-
-        #central-check.active {
-            background: var(--accent-mint);
-            color: var(--text-dark);
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            pointer-events: auto;
-        }
-
-        .team-side { 
-            flex: 1; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            padding: 10px; 
-            position: relative; 
-            height: 100%;
-            overflow: hidden;
-        }
-
-        #question-box {
-            position: absolute; top: 10px; left: 50%; transform: translateX(-50%);
-            z-index: 10; background: #fff; padding: 8px 15px; border-radius: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1); text-align: center;
-            width: 90%; max-width: 380px; border: 3px solid var(--accent-mint);
-        }
+        .q-prompt { font-size: clamp(1rem, 2.5vh, 1.3rem); font-weight: bold; }
+        .q-target { font-size: clamp(0.8rem, 2vh, 1.1rem); color: #888; }
 
         .drop-zone {
-            width: 100%; height: 80px; background: rgba(255,255,255,0.6);
-            border: 3px dashed #ddd; border-radius: 15px; margin-top: 85px;
-            display: flex; justify-content: center; align-items: center; gap: 5px;
-            flex-wrap: wrap; padding: 5px;
+            width: 100%; min-height: 12vh; background: rgba(255,255,255,0.6);
+            border: 3px dashed #ddd; border-radius: 20px;
+            display: flex; justify-content: center; align-items: center; gap: 8px; flex-wrap: wrap; padding: 10px;
         }
 
-        .word-bank { 
-            width: 100%; 
-            max-height: 130px; 
-            margin-top: 10px; 
-            display: flex; flex-wrap: wrap; justify-content: center; 
-            align-content: flex-start; gap: 6px; 
-            overflow-y: auto;
-            padding: 5px;
-        }
+        .word-bank { width: 100%; flex-grow: 1; margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center; align-content: flex-start; gap: 10px; overflow-y: auto; padding: 10px; }
 
         .tile { 
-            background: #fff; padding: 8px 12px; border-radius: 10px; 
-            font-weight: bold; font-size: 1rem; cursor: pointer; 
-            box-shadow: 0 3px 0 #ddd; border: 1px solid #eee;
-            touch-action: manipulation;
+            background: #fff; padding: clamp(10px, 2vh, 18px) clamp(15px, 3vw, 25px); 
+            border-radius: 15px; font-size: clamp(1.1rem, 2.5vh, 1.6rem); 
+            cursor: pointer; box-shadow: 0 5px 0 #ddd; border: 1px solid #eee;
         }
         .tile.locked { background: #e0e0e0 !important; color: #999 !important; cursor: default !important; box-shadow: none !important; }
 
-        .btn-lock { 
-            background: #ffeaa7; 
-            margin: 10px 0; 
-            width: 90%; 
-            flex-shrink: 0; 
-            min-height: 45px; 
-            z-index: 10;
-        }
+        .bottom-controls { width: 95%; display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+
+        .btn-lock { font-family: 'Jua', sans-serif; background: #ffeaa7; width: 100%; height: 7vh; font-size: 1.2rem; border-radius: 15px; }
         .btn-lock.locked { background: var(--btn-gray) !important; color: #7f8c8d; cursor: default; }
 
-        .symbol { position: absolute; font-size: 60px; font-weight: bold; text-shadow: 2px 2px 10px rgba(0,0,0,0.1); animation: floatUp 2s ease-out forwards; pointer-events: none; z-index: 100; }
-        
-        @keyframes floatUp { 0% { transform: translate(-50%, 0); opacity: 1; top: 60%; } 100% { transform: translate(-50%, -300px); opacity: 0; top: 60%; } }
-
-        @media (max-width: 768px) {
-            #central-check { top: 230px; font-size: 0.9rem; }
-            .word-bank { max-height: 100px; }
+        .btn-check {
+            font-family: 'Jua', sans-serif; background: var(--btn-gray); color: #7f8c8d;
+            border: 3px solid #fff; width: 100%; height: 6vh; font-size: 1.1rem; border-radius: 50px;
+            cursor: default; pointer-events: none; transition: all 0.3s ease;
         }
+        .btn-check.active { background: var(--accent-mint); color: var(--text-dark); cursor: pointer; pointer-events: auto; box-shadow: 0 4px 0 #89d698; }
+
+        .symbol { position: absolute; font-size: 80px; text-shadow: 2px 2px 10px rgba(0,0,0,0.1); animation: floatUp 2s ease-out forwards; pointer-events: none; z-index: 100; }
+        @keyframes floatUp { 0% { transform: translate(-50%, 0); opacity: 1; top: 60%; } 100% { transform: translate(-50%, -300px); opacity: 0; top: 60%; } }
+        body.single-mode #side-b, body.single-mode .divider, body.single-mode .score-b { display: none; }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="score-box score-a">TEAM A <span id="score-a-val" class="score-val">0</span></div>
+<div id="main-menu">
+    <div class="menu-title">PAST TIME PERIOD:<br>HUNT THE WORDS</div>
+    <button class="menu-btn btn-single" onclick="startWithMode('single')">SINGLE MODE</button>
+    <button class="menu-btn btn-team" onclick="startWithMode('team')">TEAM MODE</button>
+</div>
 
+<div id="game-over">
+    <div class="menu-title" id="winner-text">GAME OVER!</div>
+    <div id="final-scores" style="font-size: 2rem; margin-bottom: 30px;"></div>
+    <button class="menu-btn btn-team" onclick="showMainMenu()">BACK TO MENU</button>
+</div>
+
+<header>
+    <div class="score-box score-a"><span id="p1-label">PLAYER</span> <span id="score-a-val" class="score-val">0</span></div>
     <div class="control-hub">
         <div class="timer-row">
             <div class="adj-btns">
@@ -197,91 +162,42 @@
             <div id="timer-display" class="timer-display">01:00</div>
             <button class="nav-btn" onclick="toggleTimer()" id="play-pause" style="background: var(--accent-mint);">PLAY</button>
             <button class="nav-btn" onclick="stopTimer()" style="background: var(--accent-peach);">STOP</button>
-            <button class="nav-btn" onclick="toggleMusic()" id="music-btn" style="background: #e0e0e0;">🎵 BGM</button>
+            <button class="nav-btn" onclick="toggleMusic()" id="music-btn">🎵 BGM</button>
         </div>
         <div class="button-row">
             <button class="nav-btn" onclick="shuffleQuestions()">SHUFFLE</button>
-            <button class="nav-btn" onclick="nextRound()">NEXT</button>
-            <button class="nav-btn" onclick="proclaimWinner()">WINNER</button>
             <button class="nav-btn" onclick="fullReset()">RESET</button>
+            <button class="nav-btn" onclick="showMainMenu()" style="background: #fff9c4;">MENU</button>
         </div>
     </div>
-
     <div class="score-box score-b">TEAM B <span id="score-b-val" class="score-val">0</span></div>
 </header>
 
 <div id="arena">
     <div class="divider"></div>
-    <div id="question-box">
-        <div id="q-prompt" style="font-size: 18px; font-weight: bold;">Loading...</div>
-        <div id="q-target" style="font-size: 14px; color: #888;">...</div>
-    </div>
-
-    <button id="central-check" onclick="checkBothTeams()">✔️ CHECK ANSWERS</button>
-
     <div class="team-side" id="side-a" style="background: #fff9fb;">
+        <div class="local-q-box"><div id="q-prompt-a" class="q-prompt">...</div><div id="q-target-a" class="q-target">...</div></div>
         <div id="zone-a" class="drop-zone"></div>
         <div id="bank-a" class="word-bank"></div>
-        <button id="lock-btn-a" class="nav-btn btn-lock" onclick="lockTeam('a')">🔒 LOCK A</button>
+        <div class="bottom-controls">
+            <button id="lock-btn-a" class="nav-btn btn-lock" onclick="lockTeam('a')">🔒 LOCK</button>
+            <button id="check-btn-a" class="btn-check" onclick="checkTeam('a')">✔️ CHECK ANSWERS</button>
+        </div>
     </div>
-
     <div class="team-side" id="side-b" style="background: #f9fbff;">
+        <div class="local-q-box"><div id="q-prompt-b" class="q-prompt">...</div><div id="q-target-b" class="q-target">...</div></div>
         <div id="zone-b" class="drop-zone"></div>
         <div id="bank-b" class="word-bank"></div>
-        <button id="lock-btn-b" class="nav-btn btn-lock" onclick="lockTeam('b')">🔒 LOCK B</button>
+        <div class="bottom-controls">
+            <button id="lock-btn-b" class="nav-btn btn-lock" onclick="lockTeam('b')">🔒 LOCK B</button>
+            <button id="check-btn-b" class="btn-check" onclick="checkTeam('b')">✔️ CHECK ANSWERS</button>
+        </div>
     </div>
 </div>
 
 <script>
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    let musicInterval = null;
-    let musicPlaying = false;
-
-    function beep(f, t, d, v=0.1) {
-        let o = audioCtx.createOscillator(); let g = audioCtx.createGain();
-        o.type = t; o.frequency.value = f;
-        g.gain.setValueAtTime(v, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d);
-        o.connect(g); g.connect(audioCtx.destination);
-        o.start(); o.stop(audioCtx.currentTime + d);
-    }
-
-    function playGameNote(freq, type, duration, vol) {
-        let o = audioCtx.createOscillator();
-        let g = audioCtx.createGain();
-        o.type = type;
-        o.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        g.gain.setValueAtTime(vol, audioCtx.currentTime);
-        g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        o.connect(g);
-        g.connect(audioCtx.destination);
-        o.start();
-        o.stop(audioCtx.currentTime + duration);
-    }
-
-    function toggleMusic() {
-        const btn = document.getElementById('music-btn');
-        if (musicPlaying) {
-            clearInterval(musicInterval);
-            musicPlaying = false;
-            btn.innerText = "🎵 BGM: OFF";
-            btn.style.background = "#e0e0e0";
-        } else {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            musicPlaying = true;
-            btn.innerText = "🎵 BGM: ON";
-            btn.style.background = "#baffc9";
-            let step = 0;
-            const melody = [261.63, 329.63, 392.00, 523.25];
-            musicInterval = setInterval(() => {
-                playGameNote(step % 2 === 0 ? 110 : 82, 'triangle', 0.4, 0.05);
-                if (step % 4 === 2) playGameNote(800, 'square', 0.05, 0.01);
-                if (step % 2 === 0) playGameNote(melody[Math.floor(Math.random() * melody.length)], 'sine', 0.2, 0.03);
-                step++;
-            }, 250);
-        }
-    }
-
+    let musicInterval = null, musicPlaying = false, isSingleMode = false;
     let questions = [
         { q: "Today is April 18", t: "April 16", ans: "twodaysago" },
         { q: "Now it's 1:30 PM", t: "11:30 AM", ans: "twohoursago" },
@@ -289,33 +205,89 @@
         { q: "Now it's morning April 23", t: "April 22 (night)", ans: "lastnight" },
         { q: "Now it is 5:00 PM", t: "4:00 PM", ans: "anhourago" }
     ];
-
-    let currentQ = 0, scoreA = 0, scoreB = 0, time = 60, timerInt = null;
-    let isLockedA = false, isLockedB = false, speedWinner = null;
     const allParts = ["yes", "ter", "day", "last", "night", "two", "days", "ago", "an", "hour", "hours", "to", "day"];
+    let scoreA = 0, scoreB = 0, time = 60, timerInt = null;
+    let currentQA = 0, currentQB = 0, isLockedA = false, isLockedB = false;
 
-    function initRound() {
-        isLockedA = false; isLockedB = false; speedWinner = null;
-        document.getElementById('lock-btn-a').classList.remove('locked');
-        document.getElementById('lock-btn-b').classList.remove('locked');
+    function startWithMode(mode) {
+        isSingleMode = (mode === 'single');
+        document.body.classList.toggle('single-mode', isSingleMode);
+        document.getElementById('p1-label').innerText = isSingleMode ? "PLAYER" : "TEAM A";
+        document.getElementById('lock-btn-a').innerText = isSingleMode ? "🔒 LOCK" : "🔒 LOCK TEAM A";
         
-        // Reset Check Button to Gray
-        const checkBtn = document.getElementById('central-check');
-        checkBtn.classList.remove('active');
+        // Ensure overlays are hidden
+        document.getElementById('main-menu').style.display = 'none';
+        document.getElementById('game-over').style.display = 'none';
+        fullReset();
+    }
 
-        const item = questions[currentQ];
-        document.getElementById('q-prompt').innerText = item.q;
-        document.getElementById('q-target').innerText = "...is " + item.t;
-        setupBank('a'); setupBank('b');
+    function showMainMenu() { 
+        stopTimer(); 
+        document.getElementById('game-over').style.display = 'none';
+        document.getElementById('main-menu').style.display = 'flex'; 
+    }
+
+    function endGame() {
+        stopTimer();
+        const over = document.getElementById('game-over');
+        const winTxt = document.getElementById('winner-text');
+        const scores = document.getElementById('final-scores');
+        over.style.display = 'flex';
+        
+        if (isSingleMode) {
+            winTxt.innerText = "WELL DONE!";
+            scores.innerText = `Final Score: ${scoreA}`;
+        } else {
+            if (scoreA > scoreB) winTxt.innerText = "TEAM A WINS! 🎉";
+            else if (scoreB > scoreA) winTxt.innerText = "TEAM B WINS! 🎉";
+            else winTxt.innerText = "IT'S A TIE! 🤝";
+            scores.innerText = `Team A: ${scoreA} | Team B: ${scoreB}`;
+        }
+    }
+
+    function beep(f, t, d, v=0.1) {
+        let o = audioCtx.createOscillator(), g = audioCtx.createGain();
+        o.type = t; o.frequency.value = f; g.gain.setValueAtTime(v, audioCtx.currentTime);
+        g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d);
+        o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + d);
+    }
+
+    function toggleMusic() {
+        const btn = document.getElementById('music-btn');
+        if (musicPlaying) { clearInterval(musicInterval); musicPlaying = false; btn.innerText = "🎵 BGM: OFF"; btn.style.background = "#fff"; } 
+        else {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            musicPlaying = true; btn.innerText = "🎵 BGM: ON"; btn.style.background = "#baffc9";
+            let step = 0; musicInterval = setInterval(() => {
+                beep(step % 2 === 0 ? 110 : 82, 'triangle', 0.4, 0.05);
+                if (step % 2 === 0) beep([261, 329, 392, 523][Math.floor(Math.random()*4)], 'sine', 0.2, 0.03);
+                step++;
+            }, 250);
+        }
+    }
+
+    function initSide(team) {
+        const idx = (team === 'a') ? currentQA : currentQB;
+        const item = questions[idx];
+        document.getElementById(`q-prompt-${team}`).innerText = item.q;
+        document.getElementById(`q-target-${team}`).innerText = "...is " + item.t;
+        if (team === 'a') { 
+            isLockedA = false; 
+            document.getElementById('lock-btn-a').classList.remove('locked'); 
+            document.getElementById('check-btn-a').classList.remove('active'); 
+        } else { 
+            isLockedB = false; 
+            document.getElementById('lock-btn-b').classList.remove('locked'); 
+            document.getElementById('check-btn-b').classList.remove('active'); 
+        }
+        setupBank(team);
     }
 
     function setupBank(team) {
-        const bank = document.getElementById(`bank-${team}`);
-        const zone = document.getElementById(`zone-${team}`);
+        const bank = document.getElementById(`bank-${team}`), zone = document.getElementById(`zone-${team}`);
         bank.innerHTML = ""; zone.innerHTML = "";
         [...allParts].sort(() => Math.random() - 0.5).forEach(p => {
-            const div = document.createElement('div');
-            div.className = 'tile'; div.innerText = p;
+            const div = document.createElement('div'); div.className = 'tile'; div.innerText = p;
             div.onclick = () => {
                 if ((team === 'a' && isLockedA) || (team === 'b' && isLockedB)) return;
                 beep(400, 'sine', 0.05);
@@ -325,123 +297,92 @@
         });
     }
 
-    function shuffleQuestions() {
-        questions.sort(() => Math.random() - 0.5);
-        currentQ = 0;
-        initRound();
-        spawnSymbol('a', '🔀 SHUFFLE'); spawnSymbol('b', '🔀 SHUFFLE');
-        beep(440, 'sine', 0.2);
-    }
-
-    function updateCheckButtonState() {
-        const checkBtn = document.getElementById('central-check');
-        if (isLockedA && isLockedB) {
-            checkBtn.classList.add('active');
-        } else {
-            checkBtn.classList.remove('active');
-        }
-    }
-
     function lockTeam(team) {
         if (team === 'a' && !isLockedA) {
             isLockedA = true; document.getElementById('lock-btn-a').classList.add('locked');
             document.querySelectorAll('#side-a .tile').forEach(t => t.classList.add('locked'));
-            if (!speedWinner) speedWinner = 'a'; beep(300, 'square', 0.1);
+            document.getElementById('check-btn-a').classList.add('active');
         } else if (team === 'b' && !isLockedB) {
             isLockedB = true; document.getElementById('lock-btn-b').classList.add('locked');
             document.querySelectorAll('#side-b .tile').forEach(t => t.classList.add('locked'));
-            if (!speedWinner) speedWinner = 'b'; beep(300, 'square', 0.1);
+            document.getElementById('check-btn-b').classList.add('active');
         }
-        updateCheckButtonState();
+        beep(300, 'square', 0.1);
     }
 
-    function checkBothTeams() {
-        if (!isLockedA || !isLockedB) return;
-        
-        // Immediately turn gray again
-        const checkBtn = document.getElementById('central-check');
+    function checkTeam(team) {
+        const checkBtn = document.getElementById(`check-btn-${team}`);
+        if (!checkBtn.classList.contains('active')) return;
         checkBtn.classList.remove('active');
-
-        const ans = questions[currentQ].ans;
-        let anyCorrect = false;
-
-        const process = (team, locked, zoneId) => {
-            if (!locked) return;
-            const user = Array.from(document.getElementById(zoneId).children).map(t => t.innerText).join('');
-            if (user === ans) {
-                let pts = 2; if (speedWinner === team) pts += 1;
-                if (team === 'a') scoreA += pts; else scoreB += pts;
-                spawnSymbol(team, `⭐ +${pts}`);
-                anyCorrect = true;
-            } else {
-                spawnSymbol(team, '☹️');
-                if (speedWinner === team) speedWinner = null;
-                unlockTeam(team);
-            }
-        };
-
-        process('a', isLockedA, 'zone-a'); 
-        process('b', isLockedB, 'zone-b');
+        const idx = (team === 'a') ? currentQA : currentQB;
+        const ans = questions[idx].ans;
+        const user = Array.from(document.getElementById(`zone-${team}`).children).map(t => t.innerText).join('');
         
-        updateScores(); 
-        beep(500, 'sine', 0.3);
-
-        if (anyCorrect && timerInt) {
-            setTimeout(() => {
-                nextRound();
-            }, 1000);
-        } else if (!anyCorrect) {
-            // Re-evaluate if it should be active (in case one team was unlocked)
-            updateCheckButtonState();
+        if (user === ans) {
+            if (team === 'a') { scoreA += 2; currentQA = (currentQA + 1) % questions.length; } 
+            else { scoreB += 2; currentQB = (currentQB + 1) % questions.length; }
+            spawnSymbol(team, `⭐+2`); updateScores(); beep(500, 'sine', 0.3);
+            if (timerInt) setTimeout(() => initSide(team), 800);
+        } else {
+            spawnSymbol(team, '☹️');
+            if (team === 'a') { isLockedA = false; document.getElementById('lock-btn-a').classList.remove('locked'); document.querySelectorAll('#side-a .tile').forEach(t => t.classList.remove('locked')); }
+            else { isLockedB = false; document.getElementById('lock-btn-b').classList.remove('locked'); document.querySelectorAll('#side-b .tile').forEach(t => t.classList.remove('locked')); }
         }
-    }
-
-    function unlockTeam(team) {
-        if (team === 'a') { isLockedA = false; document.getElementById('lock-btn-a').classList.remove('locked'); document.querySelectorAll('#side-a .tile').forEach(t => t.classList.remove('locked')); }
-        else { isLockedB = false; document.getElementById('lock-btn-b').classList.remove('locked'); document.querySelectorAll('#side-b .tile').forEach(t => t.classList.remove('locked')); }
-        updateCheckButtonState();
     }
 
     function spawnSymbol(team, txt) {
         const s = document.createElement('div'); s.className = 'symbol'; s.innerText = txt;
-        s.style.left = team === 'a' ? '25%' : '75%';
+        s.style.left = (isSingleMode || team === 'a') ? (isSingleMode ? '50%' : '25%') : '75%';
         document.body.appendChild(s); setTimeout(() => s.remove(), 2000);
     }
 
-    function updateScores() {
-        document.getElementById('score-a-val').innerText = scoreA;
-        document.getElementById('score-b-val').innerText = scoreB;
-    }
-
+    function shuffleQuestions() { questions.sort(() => Math.random() - 0.5); fullReset(); beep(440, 'sine', 0.2); }
+    function updateScores() { document.getElementById('score-a-val').innerText = scoreA; document.getElementById('score-b-val').innerText = scoreB; }
     function adjTime(v) { time = Math.max(0, time + v); updateDisp(); }
-
+    
     function toggleTimer() {
         const btn = document.getElementById('play-pause');
-        if (timerInt) { clearInterval(timerInt); timerInt = null; btn.innerText = "PLAY"; } 
-        else { 
+        if (timerInt) { 
+            clearInterval(timerInt); 
+            timerInt = null; 
+            btn.innerText = "PLAY"; 
+        } else { 
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            timerInt = setInterval(() => { if (time > 0) { time--; updateDisp(); } else { stopTimer(); } }, 1000); btn.innerText = "PAUSE"; 
+            timerInt = setInterval(() => { 
+                if (time > 0) { 
+                    time--; 
+                    updateDisp(); 
+                } else { 
+                    endGame(); 
+                } 
+            }, 1000); 
+            btn.innerText = "PAUSE"; 
         }
     }
 
-    function stopTimer() { clearInterval(timerInt); timerInt = null; document.getElementById('play-pause').innerText = "PLAY"; }
-    function updateDisp() { let m = Math.floor(time/60), s = time%60; document.getElementById('timer-display').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; }
-
-    function fullReset() { stopTimer(); time = 60; updateDisp(); scoreA = 0; scoreB = 0; updateScores(); currentQ = 0; initRound(); }
-
-    function proclaimWinner() {
-        stopTimer();
-        let winner = scoreA > scoreB ? 'a' : (scoreB > scoreA ? 'b' : 'both');
-        if (winner === 'both') { spawnSymbol('a', '👑 TIE'); spawnSymbol('b', '👑 TIE'); }
-        else { spawnSymbol(winner, '👑 WINNER!'); }
-        beep(523, 'sine', 0.2); setTimeout(() => beep(659, 'sine', 0.2), 150); setTimeout(() => beep(783, 'sine', 0.4), 300);
+    function stopTimer() { 
+        clearInterval(timerInt); 
+        timerInt = null; 
+        document.getElementById('play-pause').innerText = "PLAY"; 
     }
 
-    function nextRound() { 
-        currentQ = Math.floor(Math.random() * questions.length);
-        initRound(); 
+    function updateDisp() { 
+        let m = Math.floor(time/60), s = time%60; 
+        document.getElementById('timer-display').innerText = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`; 
     }
-    initRound();
+
+    function fullReset() { 
+        stopTimer(); 
+        time = 60; 
+        updateDisp(); 
+        scoreA = 0; 
+        scoreB = 0; 
+        updateScores(); 
+        currentQA = 0; 
+        currentQB = 0; 
+        initSide('a'); 
+        if (!isSingleMode) initSide('b'); 
+    }
 </script>
 </body>
 </html>
